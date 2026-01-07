@@ -122,13 +122,12 @@ http.createServer(async (req, res) => {
             res.writeHead(400, { "Content-Type": "text/plain" });
             res.write("Invalid file ID");
             res.end();
-            console.error("Invalid file ID");
             return;
         }
         res.writeHead(200, { "Content-Type": "text/html" });
         res.write(await generateCanvasHTML(fileID));
     } else if (req.url.startsWith("/public/Lato/") && /Lato-[A-Za-z]+?\.ttf/.test(req.url.slice(13))) {
-        res.write(fs.readFileSync(process.cwd() + "/." + req.url));
+        res.write(fs.readFileSync(process.cwd() + req.url));
     } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.write("Not found");
