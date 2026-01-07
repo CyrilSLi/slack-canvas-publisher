@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const jsdom = require("jsdom");
 const minify = require("html-minifier").minify;
+const path = require("node:path");
 
 async function generateCanvasHTML(fileID) {
     const xoxdToken = process.env.XOXD_TOKEN;
@@ -127,7 +128,7 @@ http.createServer(async (req, res) => {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.write(await generateCanvasHTML(fileID));
     } else if (req.url.startsWith("/public/Lato/") && /Lato-[A-Za-z]+?\.ttf/.test(req.url.slice(13))) {
-        res.write(fs.readFileSync(process.cwd() + req.url));
+        res.write(fs.readFileSync(path.resolve("." + req.url)));
     } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.write("Not found");
