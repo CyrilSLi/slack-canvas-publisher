@@ -134,4 +134,4 @@ http.createServer(async (req, res) => {
         res.write("Not found");
     }
     res.end();
-}).listen(8080);
+}).listen(process.env.PORT || 3000);
