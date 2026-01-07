@@ -1,6 +1,4 @@
-/.env
-/node_modules
-/out.html
-/package-lock.json
+.env
+node_modules
 .vercel
 .env*.local
