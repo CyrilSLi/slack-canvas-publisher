@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>slack-canvas-publisher Demo</title>
+</head>
+<body style="padding: 20px;">
+    <h1>slack-canvas-publisher Demo</h1>
+    <p>Enter a <b>public</b> Slack canvas File ID or URL below to load a self-contained HTML export.</p>
+    <form id="load-form" style="display: flex; flex-direction: row;">
+        <input type="text" id="file" placeholder="Enter a Slack canvas File ID or URL" required style="flex: 1;">
+        <button type="submit" style="width: min-content;">Load</button>
+    </form>
+    <script>
+        document.getElementById("load-form").addEventListener("submit", (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const file = document.getElementById("file").value.trim();
+            if (!file) {
+                return;
+            }
+            const fileID = file.slice(file.lastIndexOf("/") + 1);
+            if (!fileID || !fileID.startsWith("F")) {
+                alert("Please enter a valid Slack canvas File ID or URL.");
+                return;
+            }
+            window.location.href = "/demo-load/" + encodeURIComponent(fileID);
+        });
+    </script>
+</body>
+</html>

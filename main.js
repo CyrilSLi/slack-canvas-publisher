@@ -1,13 +1,13 @@
 require("dotenv").config();
 const fs = require("node:fs");
+const http = require("node:http");
 const jsdom = require("jsdom");
 const minify = require("html-minifier").minify;
 
-async function main() {
+async function generateCanvasHTML(fileID) {
     const xoxdToken = process.env.XOXD_TOKEN;
-    const subdomain = "hackclub.enterprise";
-    const workspaceID = "T0266FRGM";
-    const fileID = "F0A6WRWFV3M"
+    const subdomain = process.env.SUBDOMAIN;
+    const workspaceID = process.env.WORKSPACE_ID;
 
     const resp = await fetch(`https://${subdomain}.slack.com/docs/${workspaceID}/${fileID}/mobile`, {
         headers: {
@@ -20,37 +20,37 @@ async function main() {
     styleEl.innerHTML += `
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-Regular.ttf") format("truetype");
+            src: url("/public/Lato/Lato-Regular.ttf") format("truetype");
             font-weight: 400;
             font-style: normal;
         }
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-Bold.ttf") format("truetype");
+            src: url("/public/Lato/Lato-Bold.ttf") format("truetype");
             font-weight: 700;
             font-style: normal;
         }
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-Black.ttf") format("truetype");
+            src: url("/public/Lato/Lato-Black.ttf") format("truetype");
             font-weight: 900;
             font-style: normal;
         }
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-Italic.ttf") format("truetype");
+            src: url("/public/Lato/Lato-Italic.ttf") format("truetype");
             font-weight: 400;
             font-style: italic;
         }
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-BoldItalic.ttf") format("truetype");
+            src: url("/public/Lato/Lato-BoldItalic.ttf") format("truetype");
             font-weight: 700;
             font-style: italic;
         }
         @font-face {
             font-family: "Lato";
-            src: url("public/Lato/Lato-BlackItalic.ttf") format("truetype");
+            src: url("/public/Lato/Lato-BlackItalic.ttf") format("truetype");
             font-weight: 900;
             font-style: italic;
         }
@@ -88,7 +88,7 @@ async function main() {
         el.parentNode.parentNode.replaceChild(emoji, el.parentNode);
     });
     styleEl.innerHTML += "\n" + (await Promise.all(srcs.map(async (src, index) => {
-        const resp = await fetch(src);
+        const resp = await fetch(decodeURIComponent(new URLSearchParams((new URL(src)).search).get("url")));
         return `
             span.emoji${index} {
                 background-image: url("data:${resp.headers.get("content-type")};base64,${Buffer.from(await resp.arrayBuffer()).toString("base64")}");
@@ -99,12 +99,39 @@ async function main() {
     document.querySelectorAll("script, li > br").forEach((el) => el.remove());
     document.querySelectorAll('*[id^="temp:"]').forEach((el) => el.removeAttribute("id"));
     document.querySelectorAll('*[class=""]').forEach((el) => el.removeAttribute("class"));
+    document.querySelectorAll('*[data-is-slack=""]').forEach((el) => el.removeAttribute("data-is-slack"));
+    document.querySelectorAll("a").forEach((el) => el.setAttribute("target", "_blank"));
 
-    fs.writeFileSync("out.html", minify(document.documentElement.outerHTML, {
+    const canvasTitle = document.querySelector("h1")?.textContent?.trim();
+    document.querySelector("head title").textContent = canvasTitle ? canvasTitle : "Slack Canvas";
+
+    return minify(document.documentElement.outerHTML, {
         minifyCSS: true,
         collapseWhitespace: true,
         conservativeCollapse: true,
-    }));
+    });
 }
 
-main().catch(console.error);
+http.createServer(async (req, res) => {
+    if (req.url === "/") {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(fs.readFileSync("public/demo.html"));
+    } else if (req.url.startsWith("/demo-load/F")) {
+        const fileID = req.url.slice(req.url.lastIndexOf("/") + 1);
+        if (!/^F[0-9A-Z]+$/.test(fileID)) {
+            res.writeHead(400, { "Content-Type": "text/plain" });
+            res.write("Invalid file ID");
+            res.end();
+            console.error("Invalid file ID");
+            return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(await generateCanvasHTML(fileID));
+    } else if (req.url.startsWith("/public/Lato/") && /Lato-[A-Za-z]+?\.ttf/.test(req.url.slice(13))) {
+        res.write(fs.readFileSync("." + req.url));
+    } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.write("Not found");
+    }
+    res.end();
+}).listen(8080);
