@@ -1,6 +1,6 @@
 require("dotenv").config();
 const fs = require("node:fs");
-const http = require("node:http");
+// const http = require("node:http");
 const jsdom = require("jsdom");
 const minify = require("html-minifier").minify;
 
@@ -112,7 +112,8 @@ async function generateCanvasHTML(fileID) {
     });
 }
 
-http.createServer(async (req, res) => {
+// http.createServer(async (req, res) => {
+export default async (req, res) => {
     if (req.url === "/") {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.write(fs.readFileSync("public/demo.html"));
@@ -134,4 +135,5 @@ http.createServer(async (req, res) => {
         res.write("Not found");
     }
     res.end();
-}).listen(process.env.PORT || 3000);
+}
+// }).listen(process.env.PORT || 3000);
