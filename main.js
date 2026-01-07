@@ -115,7 +115,7 @@ async function generateCanvasHTML(fileID) {
 http.createServer(async (req, res) => {
     if (req.url === "/") {
         res.writeHead(200, { "Content-Type": "text/html" });
-        res.write(fs.readFileSync("public/demo.html"));
+        res.write(fs.readFileSync(process.cwd() + "/public/demo.html"));
     } else if (req.url.startsWith("/demo-load/F")) {
         const fileID = req.url.slice(req.url.lastIndexOf("/") + 1);
         if (!/^F[0-9A-Z]+$/.test(fileID)) {
@@ -128,7 +128,7 @@ http.createServer(async (req, res) => {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.write(await generateCanvasHTML(fileID));
     } else if (req.url.startsWith("/public/Lato/") && /Lato-[A-Za-z]+?\.ttf/.test(req.url.slice(13))) {
-        res.write(fs.readFileSync("." + req.url));
+        res.write(fs.readFileSync(process.cwd() + "/." + req.url));
     } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.write("Not found");
