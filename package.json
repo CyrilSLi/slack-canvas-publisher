@@ -10,8 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "dedent-js": "^1.0.1",
     "dotenv": "^17.2.3",
+    "html-minifier": "^4.0.0",
     "jsdom": "^27.4.0"
   }
 }
