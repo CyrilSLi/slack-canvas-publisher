@@ -17,5 +17,8 @@
   },
   "engine": {
     "node": "22.x"
-  }
+  },
+  "files": [
+    "public"
+  ]
 }
