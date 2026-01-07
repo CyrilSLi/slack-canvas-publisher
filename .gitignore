@@ -2,3 +2,5 @@
 /node_modules
 /out.html
 /package-lock.json
+.vercel
+.env*.local
