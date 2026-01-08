@@ -17,43 +17,39 @@ async function generateCanvasHTML(fileID) {
     const document = new jsdom.JSDOM(await resp.text()).window.document;
     const styleEl = document.querySelector("head style");
 
+    const fontStyles = {
+        Regular: [400, "normal"],
+        Bold: [700, "normal"],
+        Black: [900, "normal"],
+        Italic: [400, "italic"],
+        BoldItalic: [700, "italic"],
+        BlackItalic: [900, "italic"]
+    }
+    let fontCSS = [];
+    ["Regular", "Bold", "Black", "Italic", "BoldItalic", "BlackItalic"].forEach((style) => {
+        fontCSS.push(`
+            @font-face {
+                font-family: "Lato";
+                src: url("/public/Lato/Lato-${style}.ttf") format("truetype");
+                font-weight: ${fontStyles[style][0]};
+                font-style: ${fontStyles[style][1]};
+            }
+        `);
+
+    });
+    ["Regular", "Bold", "Italic", "BoldItalic"].forEach((style) => {
+        fontCSS.push(`
+            @font-face {
+                font-family: "Liberation Mono";
+                src: url("/public/LiberationMono/LiberationMono-${style}.ttf") format("truetype");
+                font-weight: ${fontStyles[style][0]};
+                font-style: ${fontStyles[style][1]};
+            }
+        `);
+    });
+    styleEl.innerHTML += "\n" + fontCSS.join("\n");
+
     styleEl.innerHTML += `
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-Regular.ttf") format("truetype");
-            font-weight: 400;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-Bold.ttf") format("truetype");
-            font-weight: 700;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-Black.ttf") format("truetype");
-            font-weight: 900;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-Italic.ttf") format("truetype");
-            font-weight: 400;
-            font-style: italic;
-        }
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-BoldItalic.ttf") format("truetype");
-            font-weight: 700;
-            font-style: italic;
-        }
-        @font-face {
-            font-family: "Lato";
-            src: url("/public/Lato/Lato-BlackItalic.ttf") format("truetype");
-            font-weight: 900;
-            font-style: italic;
-        }
         h1, h2, h3, h4, h5, h6, th {
             font-family: "Lato", sans-serif !important;
             font-weight: 900 !important;
@@ -67,6 +63,27 @@ async function generateCanvasHTML(fileID) {
             transform: translateY(3px) !important;
             background-size: contain !important;
             margin: 0 0.05em !important;
+        }
+        code, pre {
+            font-family: "Liberation Mono", monospace !important;
+            background-color: rgb(248, 248, 248) !important;
+            border: 1px solid rgb(221, 221, 221) !important;
+        }
+        code {
+            padding: 2px 3px 1px !important;
+            margin: 4px 0px !important;
+            border-radius: 3px !important;
+            color: rgb(224, 30, 90) !important;
+        }
+        pre.prettyprint:before {
+            display: none !important;
+        }
+        pre.prettyprint {
+            padding: 8px !important;
+            border-radius: 4px !important;
+        }
+        ul li, p.line {
+            margin-bottom: 6px !important;
         }
     `;
 
@@ -128,6 +145,9 @@ http.createServer(async (req, res) => {
         res.write(await generateCanvasHTML(fileID));
     } else if (req.url.startsWith("/public/Lato/") && /Lato-[A-Za-z]+?\.ttf/.test(req.url.slice(13))) {
         const _ = [...fs.readdirSync(process.cwd() + "/public/Lato/")];
+        res.write(fs.readFileSync(process.cwd() + req.url));
+    } else if (req.url.startsWith("/public/LiberationMono/") && /LiberationMono-[A-Za-z]+?\.ttf/.test(req.url.slice(23))) {
+        const _ = [...fs.readdirSync(process.cwd() + "/public/LiberationMono/")];
         res.write(fs.readFileSync(process.cwd() + req.url));
     } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
